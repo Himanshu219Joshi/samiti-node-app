@@ -25,11 +25,46 @@ const data = [
   { id: 12, memberName: 'Dilip', loanAmount: 7500, investedMoney: 3000 },
 ];
 
+const samitiSummary = {
+  totalAmount: 66591,
+  lentAmount: 66591,
+  balanceAmount: 591
+}
+
+const loanDeatils = [
+  {
+    id: 1, 
+    name: "Bharat Joshi",
+    amount: 20000,
+    Date: "15-Jun-2024"
+  },
+  {
+    id: 2,
+    name: "Hitesh Joshi",
+    amount: 23000,
+    Date: "15-Jul-2024"
+  },
+  {
+    id: 3,
+    name: "Suresh Joshi",
+    amount: 23000,
+    Date: "15-Aug-2024"
+  }
+]
+
 // Step 3: Define endpoints
 
 // Get all data
 app.get('/data', (req, res) => {
   res.json(data);
+});
+
+app.get('/loans', (req, res) => {
+  res.json(loanDeatils);
+});
+
+app.get('/samitiSummary', (req, res) => {
+  res.json(samitiSummary);
 });
 
 // Get data by ID
