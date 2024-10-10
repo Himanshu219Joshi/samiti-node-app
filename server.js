@@ -1,84 +1,65 @@
-// Step 1: Initialize a new Node.js project
-// Run the following commands in your terminal:
-// npm init -y
-// npm install express
+'use strict'
+      
+// require express and bodyParser  
+const  express = require("express");
+const  bodyParser = require("body-parser");
+const router = express.Router();
+const audit = require('express-requests-logger')
+const authenticateToken = require('./middleware/auth')
+const SECRET_KEY = "testSamitiApp"
 
-// Step 2: Create an Express server
+// Import DB Connection
+require("./config/db");
 
-const express = require('express');
-const app = express();
-const port = 3000;
 
-// Sample data
-const data = [
-  { id: 1, memberName: 'Himanshu', loanAmount: 5000, investedMoney: 2000 },
-  { id: 2, memberName: 'Rajendra', loanAmount: 10000, investedMoney: 5000 },
-  { id: 3, memberName: 'Dilip', loanAmount: 7500, investedMoney: 3000 },
-  { id: 4, memberName: 'Himanshu', loanAmount: 5000, investedMoney: 2000 },
-  { id: 5, memberName: 'Rajendra', loanAmount: 10000, investedMoney: 5000 },
-  { id: 6, memberName: 'Dilip', loanAmount: 7500, investedMoney: 3000 },
-  { id: 7, memberName: 'Himanshu', loanAmount: 5000, investedMoney: 2000 },
-  { id: 8, memberName: 'Rajendra', loanAmount: 10000, investedMoney: 5000 },
-  { id: 9, memberName: 'Dilip', loanAmount: 7500, investedMoney: 3000 },
-  { id: 10, memberName: 'Himanshu', loanAmount: 5000, investedMoney: 2000 },
-  { id: 11, memberName: 'Rajendra', loanAmount: 10000, investedMoney: 5000 },
-  { id: 12, memberName: 'Dilip', loanAmount: 7500, investedMoney: 3000 },
-];
+const timeLog = (req, res, next) => {
+  console.log('Time: ', `${new Date().toLocaleTimeString()}`)
 
-const samitiSummary = {
-  totalAmount: 66591,
-  lentAmount: 66591,
-  balanceAmount: 591
 }
+router.use(timeLog)
+// create express app
+const  app = express();  
 
-const loanDeatils = [
-  {
-    id: 1, 
-    name: "Bharat Joshi",
-    amount: 20000,
-    Date: "15-Jun-2024"
-  },
-  {
-    id: 2,
-    name: "Hitesh Joshi",
-    amount: 23000,
-    Date: "15-Jul-2024"
-  },
-  {
-    id: 3,
-    name: "Suresh Joshi",
-    amount: 23000,
-    Date: "15-Aug-2024"
+const jwt = require('jsonwebtoken');
+
+// import bcryptjs - hashing function 
+const bcrypt = require('bcryptjs');
+
+const users =
+// use bodyParser middleware on express app   
+app.use(bodyParser.urlencoded({ extended:  true }));  
+app.use(bodyParser.json());
+
+app.post('/login', (req, res) => {
+  console.log(req.body);
+  const { mobileNo, password } = req.body;
+  const user = users.find(u => u.mobileNo === mobileNo && u.password === password);
+
+  if (!user) {
+    return res.status(400).send('Mobile or Password is incorrect');
   }
-]
 
-// Step 3: Define endpoints
-
-// Get all data
-app.get('/data', (req, res) => {
-  res.json(data);
+  const token = jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '15m' });
+  res.json({ token });
 });
 
-app.get('/loans', (req, res) => {
-  res.json(loanDeatils);
-});
+// define port to run express app
+const  port = process.env.PORT || 3000;
 
-app.get('/samitiSummary', (req, res) => {
-  res.json(samitiSummary);
-});
+// Include route files
+const userRoutes = require('./routes/userRoutes')
+const samitiRoutes = require('./routes/samitiRoutes');
 
-// Get data by ID
-app.get('/data/:id', (req, res) => {
-  const id = parseInt(req.params.id, 10);
-  const item = data.find(d => d.id === id);
-  if (item) {
-    res.json(item);
-  } else {
-    res.status(404).send({ error: 'Data not found' });
-  }
-});
+// Use routes
+app.get('/', (req, res) => {
+  res.send("This is samiti app");
+})
 
-// Step 4: Start the server
+app.use('/user', userRoutes)
+app.use('/samiti', authenticateToken, samitiRoutes);
+
+// Listen to server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+console.log(`Server running at http://localhost:${port}`);
 });
+
