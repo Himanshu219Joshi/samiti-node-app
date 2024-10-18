@@ -1,51 +1,58 @@
-// 'use strict';
+'use strict';
 
-// // Import mongoose 
-// const mongoose = require("mongoose");
+// Import mongoose 
+const mongoose = require("mongoose");
 
-// // Import bcryptjs - for password hashing
-// const bcrypt = require('bcryptjs');
+// Import bcryptjs - for password hashing
+const bcrypt = require('bcryptjs');
 
-// // Declare schema and assign Schema class
-// const Schema = mongoose.Schema;
+// Declare schema and assign Schema class
+const Schema = mongoose.Schema;
 
-// // Create Schema Instance for User and add properties
-// const UserSchema = new Schema({
-//     firstName: {
-//         type: String,
-//         trim: true,
-//         required: true
-//     },
+// Create Schema Instance for User and add properties
+const UserSchema = new Schema({
+    name: 'string',
+    firstName: {
+        type: String,
+        trim: true,
+        required: true
+    },
 
-//     lastName: {
-//         type: String,
-//         trim: true,
-//         required: true
-//     },
+    lastName: {
+        type: String,
+        trim: true,
+        required: true
+    },
 
-//     phoneNumber: {
-//         type: String,
-//         unique: true,
-//         lovercase: true,
-//         trim: true,
-//         required: true
-//     },
+    phoneNumber: {
+        type: String,
+        lovercase: true,
+        trim: true,
+        required: true
+    },
 
-//     hash_password: {
-//         type: String,
-//         required: true
-//     },
+    password: {
+        type: String,
+        lovercase: true,
+        trim: true,
+        required: true
+    },
 
-//     createdOn: {
-//         type: Date,
-//         default: Date.now
-//     }
-// });
+    hash_password: {
+        type: String,
+        required: true
+    },
 
-// //Create a Schema method to compare password 
-// UserSchema.methods.comparePassword = function (password) {
-//     return bcrypt.compareSync(password, this.hash_password);
-// }
+    createdOn: {
+        type: Date,
+        default: Date.now
+    }
+});
 
-// // Create and export User model
-// module.exports = mongoose.model("User", UserSchema);
+//Create a Schema method to compare password 
+UserSchema.methods.comparePassword = function (password) {
+    return bcrypt.compareSync(password, this.hash_password);
+}
+
+// Create and export User model
+module.exports = mongoose.model("users", UserSchema);

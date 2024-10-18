@@ -1,6 +1,7 @@
 
 const User = require("../models/user");
 const SECRET_KEY = "testSamitiApp"
+const jwt = require('jsonwebtoken')
 
 module.exports = {
     // import jsonwebtoken
@@ -38,27 +39,31 @@ module.exports = {
     },
 
     // User Sign function
-    signIn: (req, res) => {
-        User.findOne({
-            email: req.body.email
-        }, (err, user) => {
-            if (err) throw err;
-            if (!user) {
-                res.status(401).json({ message: 'Authentication failed. User not found.' });
-            } else if (user) {
-                if (!user.comparePassword(req.body.password)) {
-                    res.status(401).json({ message: 'Authentication failed. Wrong password.' });
-                } else {
-                    res.json({
-                        token: jwt.sign({ email: user.email, fullName: user.fullName, _id: user._id }, 'RESTfulAPIs')
-                    });
-                }
+    signIn: async (req) => {
+        console.log(req.body)
+        const user = await User.findOne({
+            phoneNumber: req.body.phoneNumber
+        })
+        console.log(user)
+
+        // if (err) throw err;
+        if (!user) {
+            return { message: 'Authentication failed. User not found.', status: 401 };
+        } else if (user) {
+            if (!user.comparePassword(req.body.password)) {
+                return { message: 'Authentication failed. Wrong password.', status: 401 };
+            } else {
+                return {
+                    token: jwt.sign({ phoneNumber: user.phoneNumber }, SECRET_KEY, { expiresIn: '15m' }),
+                    status: 200 
+                };
             }
-        });
+        }
     },
 
+
     // User Register function
-    loginRequired : (req, res, next) => {
+    loginRequired: (req, res, next) => {
         if (req.user) {
             res.json({ message: 'Authorized User, Action Successful!' });
         } else {

@@ -7,9 +7,16 @@ const router = express.Router();
 const audit = require('express-requests-logger')
 const authenticateToken = require('./middleware/auth')
 const SECRET_KEY = "testSamitiApp"
+// Include route files
+const userRoutes = require('./routes/userRoutes')
+const samitiRoutes = require('./routes/samitiRoutes');
+const { loginUsers } = require("./mock");
+const User = require('./models/user')
 
 // Import DB Connection
-require("./config/db");
+const connectDB = require("./config/db");
+
+connectDB();
 
 
 const timeLog = (req, res, next) => {
@@ -25,37 +32,38 @@ const jwt = require('jsonwebtoken');
 // import bcryptjs - hashing function 
 const bcrypt = require('bcryptjs');
 
-const users =
+const users = loginUsers;
 // use bodyParser middleware on express app   
 app.use(bodyParser.urlencoded({ extended:  true }));  
 app.use(bodyParser.json());
 
-app.post('/login', (req, res) => {
+app.post('/login', async (req, res) => {
   console.log(req.body);
-  const { mobileNo, password } = req.body;
-  const user = users.find(u => u.mobileNo === mobileNo && u.password === password);
+  const { phoneNumber } = req.body;
+  
+
+  const user = await User.findOne({phoneNumber: phoneNumber}).then(user => user);
 
   if (!user) {
     return res.status(400).send('Mobile or Password is incorrect');
   }
 
-  const token = jwt.sign({ username: user.username }, SECRET_KEY, { expiresIn: '15m' });
-  res.json({ token });
+  console.log(user);
+  const token = jwt.sign({ phoneNumber: user.phoneNumber }, SECRET_KEY, { expiresIn: '15m' });
+  res.json({ token, userInfo: user });
 });
 
 // define port to run express app
 const  port = process.env.PORT || 3000;
 
-// Include route files
-const userRoutes = require('./routes/userRoutes')
-const samitiRoutes = require('./routes/samitiRoutes');
+
 
 // Use routes
 app.get('/', (req, res) => {
   res.send("This is samiti app");
 })
 
-app.use('/user', userRoutes)
+app.use('/', userRoutes)
 app.use('/samiti', authenticateToken, samitiRoutes);
 
 // Listen to server

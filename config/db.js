@@ -1,51 +1,30 @@
-'use strict';
+const mongoose = require('mongoose');
+const uri = "mongodb+srv://samitiapp:samitiapp@samiticluster.by7ml.mongodb.net/samiti?retryWrites=true&w=majority&appName=samiticluster";
+const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
-// Import mongoose 
-const mongoose = require("mongoose");
+// const uri = "mongodb+srv://<db_username>:<db_password>@samiticluster.by7ml.mongodb.net/?retryWrites=true&w=majority&appName=samiticluster";
+// const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
+// async function run() {
+//   try {
+//     // Create a Mongoose client with a MongoClientOptions object to set the Stable API version
+//     await mongoose.connect(uri, clientOptions);
+//     await mongoose.connection.db.admin().command({ ping: 1 });
+//     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+//   } finally {
+//     // Ensures that the client will close when you finish/error
+//     await mongoose.disconnect();
+//   }
+// }
+// run().catch(console.dir);
 
-// Import bcryptjs - for password hashing
-const bcrypt = require('bcryptjs');
-
-// Declare schema and assign Schema class
-const Schema = mongoose.Schema;
-
-// Create Schema Instance for User and add properties
-const UserSchema = new Schema({
-    firstName: {
-        type: String,
-        trim: true,
-        required: true
-    },
-
-    lastName: {
-        type: String,
-        trim: true,
-        required: true
-    },
-
-    phoneNumber: {
-        type: String,
-        unique: true,
-        lovercase: true,
-        trim: true,
-        required: true
-    },
-
-    hash_password: {
-        type: String,
-        required: true
-    },
-
-    createdOn: {
-        type: Date,
-        default: Date.now
+const connectDB = async () => {
+    try {
+      const conn = await mongoose.connect(uri, clientOptions);
+      console.log(`MongoDB Connected: {conn.connection.host}`);
+    } catch (error) {
+      console.error(error.message);
+      process.exit(1);
     }
-});
+  }
 
-//Create a Schema method to compare password 
-UserSchema.methods.comparePassword = function (password) {
-    return bcrypt.compareSync(password, this.hash_password);
-}
-
-// Create and export User model
-module.exports = mongoose.model("User", UserSchema);
+  module.exports = connectDB;   

@@ -3,43 +3,26 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken')
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
+const User = require('../models/user');
+const user = require('../models/user');
+const { signIn } = require('../controllers/authController');
 const SECRET_KEY = "testSamitiApp"
 
 // post request for user registration
 
-router.post("/register", (req, res, next) => {
-    let { mobileNo, password } = req.body;
-    const hash_password = bcrypt.hashSync(password, 10);
-    // newUser.save((err, user) => {
-    //     if (err) {
-    //         res.status(500).send({ message: err });
-    //     }
-    //     user.hash_password = undefined;
-    //     res.status(201).json(user);
-    // });
-    res.status(200).json({mobile_no: mobileNo, hash_key: hash_password})
+router.post("/register", async (req, res, next) => {
+    let user = new User(req.body)
+    console.log(req.body.password);
+    user.hash_password = bcrypt.hashSync(req.body.password, 10);
+    const savedUser = await user.save().then(user => user)
+    res.status(200).json(savedUser)
     next()
 })
 // post request for user log in  
-router.post("/signIn", (req, res, next) => {
-    console.log(req.body)
-    User.findOne({
-        mobileNo: req.body.mobileNo
-    }, (err, user) => {
-        if (err) throw err;
-        if (!user) {
-            res.status(401).json({ message: 'Authentication failed. User not found.' });
-        } else if (user) {
-            if (!user.comparePassword(req.body.password)) {
-                res.status(401).json({ message: 'Authentication failed. Wrong password.' });
-            } else {
-                res.json({
-                    token: jwt.sign({ mobile_no: req.body.mobileNo, },  SECRET_KEY , {expiresIn: '15m'})
-                });
-            }
-        }
-    });
+router.post("/signIn", async (req, res, next) => {
+    const response = await signIn(req)
+    res.status(response.status).json(response);
     next()
 })
 
