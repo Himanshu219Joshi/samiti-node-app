@@ -39,17 +39,17 @@ app.use(bodyParser.json());
 
 app.post('/login', async (req, res) => {
   console.log(req.body);
-  const { phoneNumber } = req.body;
+  const { mobileNumber } = req.body;
   
 
-  const user = await User.findOne({phoneNumber: phoneNumber}).then(user => user);
+  const user = await User.findOne({mobileNumber: mobileNumber}).then(user => user);
 
   if (!user) {
     return res.status(400).send('Mobile or Password is incorrect');
   }
 
   console.log(user);
-  const token = jwt.sign({ phoneNumber: user.phoneNumber }, SECRET_KEY, { expiresIn: '15m' });
+  const token = jwt.sign({ mobileNumber: user.mobileNumber }, SECRET_KEY, { expiresIn: '15m' });
   res.json({ token, userInfo: user });
 });
 

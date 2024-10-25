@@ -49,26 +49,33 @@ const memberList = [
     intrest: 0
   }
 
+  // formula for calculating EMI reducing rate
+
+  // EMI = P * R * (1 + r)^tenure in month / ((1+r)^tenure in month - 1)
+  // for ex 20000 * 0.01 * (1 + 0.01)^20 / ((1 + 0.01)^20-1) = 1108.33
+  // Interest Calulation = (EMI * Tenure in month) - P   
+  // for ex 1108 * 20 - 20000 = 2160 
+
 
 
   const loanDeatils = [
     {
-      id: 1, 
-      name: "Bharat Joshi",
-      amount: 20000,
-      Date: "15-Jun-2024"
+      memberId: 1, 
+      memberName: "Bharat Joshi",
+      loanAmount: 20000,
+      date: "15-Jun-2024"
     },
     {
-      id: 2,
-      name: "Hitesh Joshi",
-      amount: 23000,
-      Date: "15-Jul-2024"
+      memberId: 2,
+      memberName: "Hitesh Joshi",
+      loanAmount: 23000,
+      date: "15-Jul-2024"
     },
     {
-      id: 3,
-      name: "Suresh Joshi",
-      amount: 23000,
-      Date: "15-Aug-2024"
+      memberId: 3,
+      memberName: "Suresh Joshi",
+      loanAmount: 23000,
+      date: "15-Aug-2024"
     }
   ]
 

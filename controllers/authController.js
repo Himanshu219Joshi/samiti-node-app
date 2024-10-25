@@ -42,7 +42,7 @@ module.exports = {
     signIn: async (req) => {
         console.log(req.body)
         const user = await User.findOne({
-            phoneNumber: req.body.phoneNumber
+            mobileNumber: req.body.mobileNumber
         })
         console.log(user)
 
@@ -54,7 +54,7 @@ module.exports = {
                 return { message: 'Authentication failed. Wrong password.', status: 401 };
             } else {
                 return {
-                    token: jwt.sign({ phoneNumber: user.phoneNumber }, SECRET_KEY, { expiresIn: '15m' }),
+                    token: jwt.sign({ mobileNumber: user.mobileNumber }, SECRET_KEY, { expiresIn: '15m' }),
                     status: 200 
                 };
             }
