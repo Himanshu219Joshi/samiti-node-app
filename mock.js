@@ -43,10 +43,19 @@ const memberList = [
   ];
 
   const samitiSummary =  {
-    totalAmount: 66591,
-    lentAmount: 66591,
-    balanceAmount: 591,
-    intrest: 0
+    summary: {
+      totalAmount: 66591,
+      lentAmount: 66591,
+      balanceAmount: 591,
+      interest: 0
+    },
+    lastLoan: {
+      memberId: 1, 
+      memberName: "Bharat Joshi",
+      loanAmount: 20000,
+      date: "15-Jun-2024"
+    },
+
   }
 
   // formula for calculating EMI reducing rate
