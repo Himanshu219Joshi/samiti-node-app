@@ -11,7 +11,7 @@ const Schema = mongoose.Schema;
 
 // Create Schema Instance for User and add properties
 const MemberSchema = new Schema({
-    id: {
+    memberId: {
         type: Number
     }, 
     memberName: { 

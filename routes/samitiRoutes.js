@@ -6,7 +6,7 @@ const router = express.Router();
 // Define a route
 router.get('/memberList', async (req, res, next) => {
     const response = await samitiData.getMembers()
-    res.json(response);// this gets executed when user visit http://localhost:3000/user
+    res.json(response);
     next()
 });
 
@@ -19,7 +19,14 @@ router.get('/getSummary', async (req, res, next) => {
 router.get('/loanDetails', async (req, res, next) => {
     const response = await samitiData.getLoanList()
     console.log("Loan Details", response)
-    res.json(response);// this gets executed when user visit http://localhost:3000/user/102
+    res.json(response);
+    next()
+});
+
+router.post('/updateSummary', async (req, res, next) => {
+    const response = await samitiData.updateSummary(req)
+    console.log("Update Samitit Summary", response)
+    // res.json(response);
     next()
 });
 

@@ -9,7 +9,7 @@ const bcrypt = require('bcryptjs');
 // Declare schema and assign Schema class
 const Schema = mongoose.Schema;
 
-const samitiSummarySchema = new Schema({
+const SamitiSummarySchema = new Schema({
     totalAmount: {
         type: Number
     },
@@ -24,7 +24,7 @@ const samitiSummarySchema = new Schema({
     }
 })  
 
-const lastLoanSummarySchema = new Schema({
+const LastLoanSummarySchema = new Schema({
     memberId: {
         type: Number
     },
@@ -36,16 +36,22 @@ const lastLoanSummarySchema = new Schema({
     }, 
     interest:{
         type: Number
+    },
+    date: {
+        type: String
+    },
+    loanAmount: {
+        type: Number
     }
 })  
 
 // Create Schema Instance for User and add properties
 const SamitiSummary = new Schema({
     summary: {
-        type: samitiSummarySchema        
+        type: SamitiSummarySchema        
     },
     lastLoan: {
-        type: lastLoanSummarySchema
+        type: LastLoanSummarySchema
     }
 });
 
@@ -54,4 +60,8 @@ const SamitiSummary = new Schema({
 // }
 
 // Create and export User model
-module.exports = mongoose.model("summary", SamitiSummary);
+module.exports = {
+    summary: mongoose.model("summary", SamitiSummary),
+    samitiSummary: SamitiSummarySchema,
+    lastLoanSummary:LastLoanSummarySchema
+}
