@@ -25,8 +25,7 @@ router.get('/loanDetails', async (req, res, next) => {
 
 router.post('/updateSummary', async (req, res, next) => {
     const response = await samitiData.updateSummary(req)
-    console.log("Update Samitit Summary", response)
-    // res.json(response);
+    res.json(response);
     next()
 });
 

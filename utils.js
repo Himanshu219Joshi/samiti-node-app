@@ -55,6 +55,15 @@ module.exports = {
         }
 
         return monthName;
+    },
+
+    getEmiAmount: (loanAmount) => {
+        const numenetor =  Math.pow(1 + 0.01, 20);
+        const denominator = Math.pow(1 + 0.01, 20)-1
+        const finalValue = 0.01 * (numenetor/denominator);
+        const emi = Math.round(finalValue * loanAmount)
+
+        return emi;
     }
 
 }

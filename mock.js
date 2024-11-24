@@ -64,6 +64,9 @@ const memberList = [
   // for ex 20000 * 0.01 * (1 + 0.01)^20 / ((1 + 0.01)^20-1) = 1108.33
   // Interest Calulation = (EMI * Tenure in month) - P   
   // for ex 1108 * 20 - 20000 = 2160 
+  
+  23000*1
+  
 
 
 

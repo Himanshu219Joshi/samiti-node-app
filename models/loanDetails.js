@@ -21,8 +21,13 @@ const LoanDetails = new Schema({
         type: Number
     },
     createdOn: {
-        type: Date,
-        default: Date.now
+        type: String,
+    },
+    date: {
+        type: String
+    },
+    emiAmount: {
+        type: Number
     }
 });
 

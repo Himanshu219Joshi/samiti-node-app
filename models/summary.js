@@ -21,7 +21,11 @@ const SamitiSummarySchema = new Schema({
     }, 
     interest:{
         date: Date
+    },
+    penaltyAmount: {
+        type: Number
     }
+
 })  
 
 const LastLoanSummarySchema = new Schema({
@@ -41,6 +45,9 @@ const LastLoanSummarySchema = new Schema({
         type: String
     },
     loanAmount: {
+        type: Number
+    },
+    emiAmount: {
         type: Number
     }
 })  
