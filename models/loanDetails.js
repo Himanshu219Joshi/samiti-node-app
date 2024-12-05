@@ -28,6 +28,12 @@ const LoanDetails = new Schema({
     },
     emiAmount: {
         type: Number
+    },
+    finalAmoutWithInterest: {
+        type: Number
+    },
+    totalInterest: {
+        type: Number
     }
 });
 

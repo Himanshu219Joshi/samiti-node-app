@@ -2,7 +2,7 @@ const { memberList, samitiSummary, loanDeatils } = require("../mock");
 const LoanDetails = require("../models/loanDetails");
 const MemberDetails = require("../models/memberDetails");
 const SummarySchema = require("../models/summary").summary;
-const { getMonthName, getEmiAmount } = require('../utils');
+const { getMonthName, getEmiAmount, getFinalAmountWithInterestValue, getInterest } = require('../utils');
 
 
 module.exports = {
@@ -36,6 +36,12 @@ module.exports = {
         const balanceAmountValue = totalAmountValue - lentAmountValue;
         const dateObj = new Date()
         const dateFormated = `${dateObj.getDate()}-${getMonthName(dateObj.getMonth())}-${dateObj.getFullYear()}`
+        const tenure = req.body.tenure || 20
+        const loanAmountValue = req.body.loanAmount
+
+        const emiAmountValue = getEmiAmount(loanAmountValue);
+        const finalAmountWithInterestValue = getFinalAmountWithInterestValue(emiAmountValue, tenure) 
+        const totalInterestValue = getInterest(finalAmountWithInterestValue, loanAmountValue)
 
         const updateSummaryRequest = {
             totalAmount: totalAmountValue,
@@ -45,14 +51,16 @@ module.exports = {
             date: dateFormated
         };
 
-        // console.log("Updated Summary", updateSummaryRequest)
+        // console.log("Updated Summary", updateSummaryRequest) 
 
         const updateLastLoanRequest = {
             memberId: memberDetails.memberId,
             memberName: memberDetails.memberName,
-            loanAmount: req.body.loanAmount,
+            loanAmount: loanAmountValue,
             date: dateFormated,
-            emiAmount: getEmiAmount(req.body.loanAmount)
+            emiAmount: emiAmountValue,
+            finalAmoutWithInterest: finalAmountWithInterestValue,
+            totalInterest: totalInterestValue
         }
         
         
@@ -71,6 +79,6 @@ module.exports = {
         })
 
 
-        // return updatedSummary;
+        return updatedSummary;
     }
 }

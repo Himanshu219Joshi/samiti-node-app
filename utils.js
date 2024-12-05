@@ -57,13 +57,28 @@ module.exports = {
         return monthName;
     },
 
-    getEmiAmount: (loanAmount) => {
+    getEmiAmount: function(loanAmount) {
         const numenetor =  Math.pow(1 + 0.01, 20);
         const denominator = Math.pow(1 + 0.01, 20)-1
         const finalValue = 0.01 * (numenetor/denominator);
         const emi = Math.round(finalValue * loanAmount)
-
+        console.log("EMI", emi);
         return emi;
+    },
+
+    getFinalAmountWithInterestValue: function(emiValue, tenure=20) {
+        const finalAmount = emiValue * tenure;
+
+        console.log("FInal Amount", finalAmount);
+        return finalAmount;
+    },
+
+    getInterest: (finalAmount, loanAmount) => {
+        const interest = finalAmount-loanAmount;
+
+        console.log("Interest===>",interest);
+
+        return interest;
     }
 
 }
