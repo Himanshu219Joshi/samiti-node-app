@@ -79,6 +79,10 @@ module.exports = {
         console.log("Interest===>",interest);
 
         return interest;
+    },
+
+    monthDiff: (startDate, endDate) => {
+       return Math.max(0, (endDate.getFullYear() - startDate.getFullYear()) * 12 - startDate.getMonth() + endDate.getMonth());
     }
 
 }

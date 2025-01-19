@@ -18,7 +18,6 @@ router.get('/getSummary', async (req, res, next) => {
 
 router.get('/loanDetails', async (req, res, next) => {
     const response = await samitiData.getLoanList()
-    console.log("Loan Details", response)
     res.json(response);
     next()
 });

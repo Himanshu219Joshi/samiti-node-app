@@ -20,11 +20,15 @@ const MemberSchema = new Schema({
     fatherName: {
         type: String
     }, 
-    loanAmount: {
+    loanAmount: {   
         type: Number 
     },
     investedMoney:{
         type: Number
+    },
+    loanDetails: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'loans'
     }
 });
 

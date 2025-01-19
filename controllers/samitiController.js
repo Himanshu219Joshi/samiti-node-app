@@ -1,19 +1,31 @@
-const { memberList, samitiSummary, loanDeatils } = require("../mock");
+const { ObjectId } = require("bson");
 const LoanDetails = require("../models/loanDetails");
 const MemberDetails = require("../models/memberDetails");
 const SummarySchema = require("../models/summary").summary;
-const { getMonthName, getEmiAmount, getFinalAmountWithInterestValue, getInterest } = require('../utils');
+const { getMonthName, getEmiAmount, getFinalAmountWithInterestValue, getInterest, monthDiff } = require('../utils');
+const memberDetails = require("../models/memberDetails");
 
 
 module.exports = {
     getMembers: async (req, res, next) => {
-        const response = await MemberDetails.find({})
+        const response = await MemberDetails.find({}).populate('loanDetails') 
         response.sort((a, b) => a.memberId - b.memberId)
         return response;
     }, 
 
     getLoanList: async (req, res, next) => {
-        const loanDeatils = await LoanDetails.find({})
+        const loanDeatils = await LoanDetails.find({}).populate('memberDetails')
+
+        loanDeatils.forEach(element => {
+            const numberOfMonth = monthDiff(new Date(element.date), new Date());
+            
+            const interest = Math.round(element.totalInterest/20);
+            element.loanAmountRecovered = numberOfMonth * (element.emiAmount - interest);
+           
+            element.interestAccrued = interest * numberOfMonth;;
+        })
+
+           
         return loanDeatils;
     },
 
@@ -25,9 +37,29 @@ module.exports = {
     updateSummary: async(req, res, next) => {
         // console.log("Body Request", req.body);
         const summaryInfo = await SummarySchema.findOne({});
-        const memberDetails  = await MemberDetails.findOne({memberId: req.body.memberId})
+        const memberDetails  = await MemberDetails.findOne({memberId: req.body.memberId}).populate('loanDetails')
+        const loanDetails = await LoanDetails.find({})
+
+        loanDetails.forEach(element => {
+            console.log(element)
+            const numberOfMonth = monthDiff(new Date(element.date), new Date());
+            
+            const interest = Math.round(element.totalInterest/20);
+            element.loanAmountRecovered = numberOfMonth * (element.emiAmount - interest);
+           
+            element.interestAccrued = interest * numberOfMonth;;
+        })
+
+        const interestAccrued = loanDetails.reduce((totalInterest, currentValue, currentIndex) => {
+            totalInterest += currentValue.interestAccrued
+            return totalInterest;
+        }, 0)
+
+        const loanAmountRecovered = loanDetails.reduce((totalAmountRecovered, currentValue, currentIndex) => {
+            totalAmountRecovered += currentValue.loanAmountRecovered
+            return totalAmountRecovered;
+        }, 0)
         
-        // console.log("Summary Info", summaryInfo);
 
         const { totalAmount = 0, lentAmount = 0, penaltyAmount = 0, balanceAmount } = summaryInfo.summary
         const penaltyAmountValue = penaltyAmount + (req.body.penaltyAmount || 0);
@@ -48,7 +80,9 @@ module.exports = {
             balanceAmount: balanceAmountValue,
             lentAmount: lentAmountValue,
             penaltyAmount: penaltyAmountValue,
-            date: dateFormated
+            date: dateFormated,
+            interestAccrued: interestAccrued,
+            loanAmountRecovered: loanAmountRecovered
         };
 
         // console.log("Updated Summary", updateSummaryRequest) 
@@ -72,12 +106,11 @@ module.exports = {
 
 
         const updateLoanDetails = await LoanDetails.create(updateLastLoanRequest)
-        const updateMemberDetails = await MemberDetails.findOneAndUpdate({memberId: memberDetails.memberId}, {
+        const updateMemberDetails = await MemberDetails.findOneAndUpdate({memberId: memberDetails.memberId, loanDetails: updateLoanDetails._id}, {
             $set :{ 
                 loanAmount: req.body.loanAmount
             }
         })
-
 
         return updatedSummary;
     }

@@ -11,12 +11,6 @@ const Schema = mongoose.Schema;
 
 // Create Schema Instance for User and add properties
 const LoanDetails = new Schema({
-    memberId: {
-        type: Number
-    }, 
-    memberName: {
-        type: String
-    },
     loanAmount: { 
         type: Number
     },
@@ -34,7 +28,17 @@ const LoanDetails = new Schema({
     },
     totalInterest: {
         type: Number
-    }
+    },
+    loanAmountRecovered: {
+        type: Number
+    },
+    interestAccrued: {
+        type: Number
+    },
+    memberDetails: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'member'
+    },
 });
 
 

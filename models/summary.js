@@ -15,18 +15,24 @@ const SamitiSummarySchema = new Schema({
     },
     lentAmount: {
         type: Number
-    }, 
+    },
     balanceAmount: {
         type: Number
-    }, 
-    interest:{
-        date: Date
+    },
+    interest: {
+        type: Number
     },
     penaltyAmount: {
         type: Number
-    }
+    },
+    interestAccrued:  {
+        type: Number 
+    },
+    loanAmountRecovered:{
+        type: Number
+    } 
 
-})  
+})
 
 const LastLoanSummarySchema = new Schema({
     memberId: {
@@ -34,28 +40,17 @@ const LastLoanSummarySchema = new Schema({
     },
     memberName: {
         type: String
-    }, 
-    balanceAmount: {
-        loanAmount: String
-    }, 
-    interest:{
-        type: Number
     },
-    date: {
-        type: String
-    },
-    loanAmount: {
-        type: Number
-    },
-    emiAmount: {
-        type: Number
+    loanDetails: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'loans' 
     }
-})  
+})
 
 // Create Schema Instance for User and add properties
 const SamitiSummary = new Schema({
     summary: {
-        type: SamitiSummarySchema        
+        type: SamitiSummarySchema
     },
     lastLoan: {
         type: LastLoanSummarySchema
@@ -70,5 +65,5 @@ const SamitiSummary = new Schema({
 module.exports = {
     summary: mongoose.model("summary", SamitiSummary),
     samitiSummary: SamitiSummarySchema,
-    lastLoanSummary:LastLoanSummarySchema
+    lastLoanSummary: LastLoanSummarySchema
 }
