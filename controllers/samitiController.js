@@ -41,7 +41,6 @@ module.exports = {
         const loanDetails = await LoanDetails.find({})
 
         loanDetails.forEach(element => {
-            console.log(element)
             const numberOfMonth = monthDiff(new Date(element.date), new Date());
             
             const interest = Math.round(element.totalInterest/20);
@@ -63,11 +62,11 @@ module.exports = {
 
         const { totalAmount = 0, lentAmount = 0, penaltyAmount = 0, balanceAmount } = summaryInfo.summary
         const penaltyAmountValue = penaltyAmount + (req.body.penaltyAmount || 0);
-        const totalAmountValue = totalAmount + req.body.totalAmount + (req.body.penaltyAmount || 0);
-        const lentAmountValue = lentAmount + req.body.loanAmount;
+        const totalAmountValue = totalAmount + (req.body.totalAmount || 0) + (req.body.penaltyAmount || 0);
+        const lentAmountValue = lentAmount + (req.body.loanAmount || 0);
         const balanceAmountValue = totalAmountValue - lentAmountValue;
-        const dateObj = new Date()
-        const dateFormated = `${dateObj.getDate()}-${getMonthName(dateObj.getMonth())}-${dateObj.getFullYear()}`
+        const dateObj = req.body.loanDate ?? new Date()
+        const dateFormated = req.body.loanDate ?? `${dateObj.getDate()}-${getMonthName(dateObj.getMonth())}-${dateObj.getFullYear()}`
         const tenure = req.body.tenure || 20
         const loanAmountValue = req.body.loanAmount
 
@@ -85,8 +84,6 @@ module.exports = {
             loanAmountRecovered: loanAmountRecovered
         };
 
-        // console.log("Updated Summary", updateSummaryRequest) 
-
         const updateLastLoanRequest = {
             memberId: memberDetails.memberId,
             memberName: memberDetails.memberName,
@@ -94,20 +91,19 @@ module.exports = {
             date: dateFormated,
             emiAmount: emiAmountValue,
             finalAmoutWithInterest: finalAmountWithInterestValue,
-            totalInterest: totalInterestValue
+            totalInterest: totalInterestValue,
+            memberDetails: memberDetails._id
         }
-        
-        
 
+        const updateLoanDetails = await LoanDetails.create(updateLastLoanRequest)
+        
         const updatedSummary = await SummarySchema.updateOne({
             summary: updateSummaryRequest,
             lastLoan: updateLastLoanRequest
         })
 
-
-        const updateLoanDetails = await LoanDetails.create(updateLastLoanRequest)
-        const updateMemberDetails = await MemberDetails.findOneAndUpdate({memberId: memberDetails.memberId, loanDetails: updateLoanDetails._id}, {
-            $set :{ 
+        const updateMemberDetails = await MemberDetails.findOneAndUpdate({memberId: memberDetails.memberId}, {
+            $set:{ 
                 loanAmount: req.body.loanAmount
             }
         })
