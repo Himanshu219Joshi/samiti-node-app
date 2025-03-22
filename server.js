@@ -10,6 +10,7 @@ const SECRET_KEY = "testSamitiApp"
 // Include route files
 const userRoutes = require('./routes/userRoutes')
 const samitiRoutes = require('./routes/samitiRoutes');
+const scheduleRoutes = require('./routes/scheduleRoute');
 const { loginUsers } = require("./mock");
 const User = require('./models/user')
 
@@ -37,32 +38,16 @@ const users = loginUsers;
 app.use(bodyParser.urlencoded({ extended:  true }));  
 app.use(bodyParser.json());
 
-app.post('/login', async (req, res) => {
-  console.log(req.body);
-  const { mobileNumber } = req.body;
-  
-
-  const user = await User.findOne({mobileNumber: mobileNumber}).then(user => user);
-
-  if (!user) {
-    return res.status(400).send('Mobile or Password is incorrect');
-  }
-
-  console.log(user);
-  const token = jwt.sign({ mobileNumber: user.mobileNumber }, SECRET_KEY, { expiresIn: '15m' });
-  res.json({ token, userInfo: user });
-});
 
 // define port to run express app
 const  port = process.env.PORT || 3000;
-
-
 
 // Use routes
 app.get('/', (req, res) => {
   res.send("This is samiti app");
 })
 
+app.use("/", scheduleRoutes)
 app.use('/', userRoutes)
 app.use('/samiti', authenticateToken, samitiRoutes);
 

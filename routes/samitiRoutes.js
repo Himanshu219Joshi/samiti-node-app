@@ -4,7 +4,7 @@ const router = express.Router();
 
 
 // Define a route
-router.get('/memberList', async (req, res, next) => {
+router.get('/getMembers', async (req, res, next) => {
     const response = await samitiData.getMembers()
     res.json(response);
     next()
@@ -16,7 +16,7 @@ router.get('/getSummary', async (req, res, next) => {
     next()
 });
 
-router.get('/loanDetails', async (req, res, next) => {
+router.get('/getLoans', async (req, res, next) => {
     const response = await samitiData.getLoanList()
     res.json(response);
     next()

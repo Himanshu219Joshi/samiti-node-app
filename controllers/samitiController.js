@@ -14,9 +14,9 @@ module.exports = {
     }, 
 
     getLoanList: async (req, res, next) => {
-        const loanDeatils = await LoanDetails.find({}).populate('memberDetails')
+        const loanDetails = await LoanDetails.find({}).populate('memberDetails')
 
-        loanDeatils.forEach(element => {
+        loanDetails.forEach(element => {
             const numberOfMonth = monthDiff(new Date(element.date), new Date());
             
             const interest = Math.round(element.totalInterest/20);
@@ -25,12 +25,10 @@ module.exports = {
             element.interestAccrued = interest * numberOfMonth;;
         })
 
-           
-        return loanDeatils;
+        return loanDetails;
     },
-
     getSamitiSummary: async (req, res, next) => {
-        const summary = await SummarySchema.findOne({});
+        const summary = await SummarySchema.findOne({}).populate({path: 'lastLoan', populate: {path: 'loanDetails'}});
         return summary;
     },
 
@@ -48,6 +46,8 @@ module.exports = {
            
             element.interestAccrued = interest * numberOfMonth;;
         })
+        
+        console.log("Loan Details", loanDetails)
 
         const interestAccrued = loanDetails.reduce((totalInterest, currentValue, currentIndex) => {
             totalInterest += currentValue.interestAccrued
@@ -59,14 +59,21 @@ module.exports = {
             return totalAmountRecovered;
         }, 0)
         
+        console.log(req.body);
 
         const { totalAmount = 0, lentAmount = 0, penaltyAmount = 0, balanceAmount } = summaryInfo.summary
         const penaltyAmountValue = penaltyAmount + (req.body.penaltyAmount || 0);
         const totalAmountValue = totalAmount + (req.body.totalAmount || 0) + (req.body.penaltyAmount || 0);
         const lentAmountValue = lentAmount + (req.body.loanAmount || 0);
         const balanceAmountValue = totalAmountValue - lentAmountValue;
-        const dateObj = req.body.loanDate ?? new Date()
-        const dateFormated = req.body.loanDate ?? `${dateObj.getDate()}-${getMonthName(dateObj.getMonth())}-${dateObj.getFullYear()}`
+        const dateObj = new Date(req.body.loanDate) ?? new Date()
+
+        console.log(dateObj)
+        console.log(dateObj.getDate())
+        console.log(getMonthName(dateObj.getMonth()))
+        console.log(dateObj.getFullYear())
+
+        const dateFormated = `${dateObj.getDate()}-${getMonthName(dateObj.getMonth())}-${dateObj.getFullYear()}`
         const tenure = req.body.tenure || 20
         const loanAmountValue = req.body.loanAmount
 
@@ -86,17 +93,22 @@ module.exports = {
 
         const updateLastLoanRequest = {
             memberId: memberDetails.memberId,
-            memberName: memberDetails.memberName,
+            memberName: memberDetails.memberName.concat(" "+ memberDetails.fatherName),
             loanAmount: loanAmountValue,
             date: dateFormated,
             emiAmount: emiAmountValue,
-            finalAmoutWithInterest: finalAmountWithInterestValue,
+            finalAmountWithInterest: finalAmountWithInterestValue,
             totalInterest: totalInterestValue,
             memberDetails: memberDetails._id
         }
 
+        console.log(updateLastLoanRequest);
+
         const updateLoanDetails = await LoanDetails.create(updateLastLoanRequest)
         
+        console.log("Lat Loan Id",updateLoanDetails)
+        updateLastLoanRequest.loanDetails = updateLoanDetails._id
+
         const updatedSummary = await SummarySchema.updateOne({
             summary: updateSummaryRequest,
             lastLoan: updateLastLoanRequest

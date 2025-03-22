@@ -38,6 +38,11 @@ const UserSchema = new Schema({
         required: true
     },
 
+    aadharNumber: {
+        type: String,
+        trim: true
+    },
+
     hash_password: {
         type: String,
         required: true
