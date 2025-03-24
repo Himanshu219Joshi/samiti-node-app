@@ -28,5 +28,19 @@ router.post('/updateSummary', async (req, res, next) => {
     next()
 });
 
+router.get('/generatePdf', (req, res, next) => {
+    const response = samitiData.generatePdf(req, res, next);
+    const options = { headers: { 'Content-Type': 'application/pdf' } };
+
+    console.log(response);
+    res.download(res, (err) => {
+        if (err) {
+          console.error('File download failed:', err);
+        } else {
+          console.log('File downloaded successfully.');
+        }
+      });
+    next()
+})
 // export the router module so that server.js file can use it
 module.exports = router;
