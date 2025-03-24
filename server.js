@@ -58,19 +58,6 @@ app.use(express.json());
 
 app.get('/generatePdf', async (req, res, next) => {
     const response = await samitiData.generatePdf(req, res);
-    const filePath = path.join(__dirname, "SamitiReport.pdf")
-    // res.download(response, "Samiti.pdf", {headers: { 'Content-type': 'application/pdf'}}, err=> console.error(err))
-    // res.setHeader('Content-type', 'application/pdf')
-    // res.setHeader('Content-Disposition', 'attachment; filename=table.pdf')
-    
-    res.download(filePath, "table.pdf", {}, err => {
-      if(err){
-        console.error(err)
-      } else {
-        console.log("no issue")
-      }
-    } )
-  
 })
 
 app.use("/", scheduleRoutes)
