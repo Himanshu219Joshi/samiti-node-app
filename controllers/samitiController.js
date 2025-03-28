@@ -131,6 +131,9 @@ module.exports = {
         const response = await MemberDetails.find({}).populate('loanDetails') 
         response.sort((a, b) => a.memberId - b.memberId)
 
+        const summary = await SummarySchema.findOne({})
+
+
         const totalRow = {
             totalLoanAmount: 0,
             totalInterestAmount: 0,
@@ -139,30 +142,39 @@ module.exports = {
             totalRecovery: 0 
         }      
 
-        response.map((member, index) => {
-            const totalInterest = member?.loanDetails?.totalInterest;
-            const emiAmount = member?.loanDetails?.emiAmount
-            const interest = !!totalInterest ? totalInterest/20 : 0
-            const principle = !!emiAmount ? emiAmount - totalInterest/20 : 0
-            const totalInvest = !!emiAmount ? 500 + emiAmount : 500;
-
-            totalRow.totalLoanAmount += member.loanAmount
-            totalRow.totalInterestAmount += [21, 22].includes(member.memberId) ? 0 : interest 
-            totalRow.totalPrinciple += principle
-            totalRow.totalAmount += [21, 22].includes(member.memberId) ? 0 : totalInvest
-            totalRow.totalRecovery += 0
-        })
         
 
-        const memberDetails = response.map(member => {
-            const interest = !!member?.loanDetails?.totalInterest ? member?.loanDetails?.totalInterest/20 : 0
-            const totalInvest = !!member?.loanDetails?.emiAmount ? 500 + member?.loanDetails?.emiAmount : 500;
-            const principle = !!member?.loanDetails?.emiAmount ? member?.loanDetails?.emiAmount - member?.loanDetails?.totalInterest/20 : 0
+        const memberDetails = response.map((member, index) => {
+
+            let recoveryAmount = 0;
+            let numberOfMonth = 0;
+
+            if(member?.loanDetails?.date){
+                numberOfMonth = monthDiff(new Date(member?.loanDetails?.date), new Date())
+            }
+
+            const totalInterest = member?.loanDetails?.totalInterest;
+            const emiAmount = member?.loanDetails?.emiAmount
+            const interest = !!totalInterest && numberOfMonth ? totalInterest/20 : 0
+            const principle = !!emiAmount && numberOfMonth ? emiAmount - totalInterest/20 : 0
+            const totalInvest = !!emiAmount && numberOfMonth ? 500 + emiAmount : 500;
+
+            if(member?.loanDetails?.date){
+                recoveryAmount = member.loanAmount - (principle * numberOfMonth)
+                totalRow.totalRecovery += recoveryAmount
+            }
+
+            totalRow.totalLoanAmount += member.loanAmount
+            totalRow.totalInterestAmount += [21, 22].includes(member.memberId) ? 0 : interest;
+            totalRow.totalPrinciple += principle
+            totalRow.totalAmount += [21, 22].includes(member.memberId) ? 0 : totalInvest
+
+           
 
             return { "सदस्य क्रमक": member.memberId, "सदस्य का नाम": `${member.memberName} ${member.fatherName}`, 
             "मासिक किस्त": '500', "ऋण राशि": `${member.loanAmount}`,
-                "ब्याज": `${interest}`, "ऋण कि किस्त": `${principle}`, "कुल योग": `${totalInvest}`, 
-                "बकाया ऋण राशि": "0"
+                "ब्याज": `${interest}`, "ऋण कि किस्त": `${principle}`, "कुल योग": `${totalInvest }`, 
+                "बकाया ऋण राशि": recoveryAmount
              }
         })
 
@@ -172,13 +184,26 @@ module.exports = {
                 "बकाया ऋण राशि": `${totalRow.totalRecovery}`
              })
 
+        const remainingAmount = summary.summary.balanceAmount;     
+
+        memberDetails.push({"सदस्य क्रमक": ' ', "सदस्य का नाम": ' ', 
+            "मासिक किस्त": ' ', "ऋण राशि": ' ',
+                "ब्याज": ``, "ऋण कि किस्त": ' ', "कुल योग": `${remainingAmount}`, 
+                "बकाया ऋण राशि": ' '
+             })
+
+        memberDetails.push({"सदस्य क्रमक": ' ', "सदस्य का नाम": ' ', 
+        "मासिक किस्त": ' ', "ऋण राशि": ' ',
+            "ब्याज": ``, "ऋण कि किस्त": ' ', "कुल योग": `${totalRow.totalAmount + remainingAmount}`, 
+            "बकाया ऋण राशि": ' '
+            })
 
         if(!!memberDetails.length && !Array.isArray(memberDetails)) {
             res.status(400).send("No Data Found");
         }
        
 
-        const doc = new PDFDocument()
+        const doc = new PDFDocument({size: 'A4'})
         const filePath = path.join(__dirname, "SamitiReport.pdf")
 
         // // console.log(filePath)
@@ -216,19 +241,21 @@ module.exports = {
 
 
 function generateTable(doc, memberDetails) {
-    const tableTop = 80; // Start position of the table
+    const tableTop = 50; // Start position of the table
     const columnPadding = 3;
     const rowHeight = 15;
     const columnWidths = [65, 130, 70,60, 40, 80, 50, 100]; // Adjust column widths as needed
     const leftMargin = 10;
     const extraRowHeight = 5
 
+    const date = new Date()
+
     doc
     .rect(10, tableTop - rowHeight-30, columnWidths.reduce((a, b) => a + b), rowHeight+20)
     .fontSize(18)
     .fill('#ffff00')
     .fillColor('#000')
-    .text('समिति के सभी सदस्यों का विवरन 15 मार्च 2025',    
+    .text(`समिति के सभी सदस्यों का विवरन 15 ${getMonthName(date.getMonth())} ${date.getFullYear()}`,    
         25, tableTop - rowHeight - 25, {align: 'center'}
     );
 
@@ -268,14 +295,14 @@ function generateTable(doc, memberDetails) {
             doc
                 .rect(25, y, columnWidths.reduce((a, b) => a + b), rowHeight)
                 .fill('#f9f9f9');
-        }
-    
+        }    
+        
 
         // Draw row values
         headers.forEach((header, i) => {
             const x = leftMargin + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
 
-            if(header ===  'ब्याज') {
+            if(header ===  'ब्याज' && ![42,43].includes(rowIndex)) {
                 doc 
                 .rect(x, y, columnWidths[i], rowHeight)            
                 .fill('#FFFF00')
@@ -285,6 +312,14 @@ function generateTable(doc, memberDetails) {
                 .fillColor('#000')
             }
 
+            if(header ===  'कुल योग' && [42,43].includes(rowIndex)) {
+                doc 
+                .rect(x, y, columnWidths[i], rowHeight)            
+                .fill('#FF0000')
+                .fillColor('#000000')
+                .stroke()
+            } 
+
             // last row back color and text color
             if(rowIndex === 41 && i != 0 && i != 1 && i != 2) {
                 doc 
@@ -292,8 +327,32 @@ function generateTable(doc, memberDetails) {
                 .fill('#FFFF00')
                 .fillColor('#FF0000')
             }
+            
+            if(header ===  'कुल योग' && [42,43].includes(rowIndex)) {
+                doc
+                .fontSize(16)
+                .fillColor("#FFFFFF")
+                .text(
+                    [19, 20].includes(rowIndex) &&  ['मासिक किस्त', 'कुल योग'].includes(header) ? 0 : row[header] , // Handle missing values
+                     40 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0) + columnPadding,
+                     40 + y + columnPadding,
+                    { width: columnWidths[i]*2, align: 'center' }
+                )
+
+                doc
+                .fontSize(14)
+                .fillColor("#FFFFFF")
+                .text(
+                    [19, 20].includes(rowIndex) &&  ['मासिक किस्त', 'कुल योग'].includes(header) ? 0 : row[header] , // Handle missing values
+                     10 + columnWidths.slice(0, i).reduce((a, b) => a + b, 0) + columnPadding,
+                     y + columnPadding,
+                    { width: columnWidths[i], align: 'center' }
+                )
+                
+            } 
 
 
+            if(![42,43].includes(rowIndex)){
             doc
                 .fontSize(10)
                 .text(
@@ -303,12 +362,20 @@ function generateTable(doc, memberDetails) {
                     { width: columnWidths[i] - columnPadding * 2, align: 'center' }
                 )
 
+            }
                 if ([19, 20].includes(rowIndex)) {
                     doc
                     .rect(x, y, columnWidths[i], rowHeight) 
                     .fillColor('#FF0000')                
                 }
+                
+                if(![42,43].includes(rowIndex))
+                    doc
+                    .fontSize(16)
+                    .text()
 
+
+                if(![42,43].includes(rowIndex))
                 doc
                 .rect(x, y, columnWidths[i], rowHeight)
                 .stroke()
@@ -319,6 +386,6 @@ function generateTable(doc, memberDetails) {
     // Draw table borders
     const tableHeight = rowHeight * (memberDetails.length + 1);
     doc
-        .rect(leftMargin, tableTop - rowHeight- extraRowHeight - 25, columnWidths.reduce((a, b) => a + b), tableHeight+ extraRowHeight + 25)
+        .rect(leftMargin, tableTop - rowHeight- extraRowHeight - 25, columnWidths.reduce((a, b) => a + b), tableHeight+ extraRowHeight + 40)
         .stroke();
   }
