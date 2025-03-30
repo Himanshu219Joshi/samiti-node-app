@@ -1,5 +1,9 @@
 const mongoose = require('mongoose');
-const uri = "mongodb+srv://samitiapp:samitiapp@samiticluster.by7ml.mongodb.net/samiti?retryWrites=true&w=majority&appName=samiticluster";
+
+// local server 
+const uri = "mongodb://localhost:27017/samiti?retryWrites=true&w=majority&appName=samiticluster";
+// real server
+// const uri = "mongodb+srv://samitiapp:samitiapp@samiticluster.by7ml.mongodb.net/samiti?retryWrites=true&w=majority&appName=samiticluster";
 const clientOptions = { serverApi: { version: '1', strict: true, deprecationErrors: true } };
 
 // const uri = "mongodb+srv://<db_username>:<db_password>@samiticluster.by7ml.mongodb.net/?retryWrites=true&w=majority&appName=samiticluster";

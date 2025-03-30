@@ -128,8 +128,10 @@ module.exports = {
 
     generatePdf: async (req, res, next) => {
 
-        const response = await MemberDetails.find({}).populate('loanDetails') 
+        const response = await MemberDetails.find({}).populate('loanDetails')
         response.sort((a, b) => a.memberId - b.memberId)
+
+        console.error("Error", response);
 
         const summary = await SummarySchema.findOne({})
 
