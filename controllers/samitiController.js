@@ -24,9 +24,35 @@ module.exports = {
             const interest = Math.round(element.totalInterest/20);
             element.loanAmountRecovered = numberOfMonth * (element.emiAmount - interest);
            
-            element.interestAccrued = interest * numberOfMonth;;
+            element.interestAccrued = interest * numberOfMonth;
         })
 
+        // below code is for updating single entry in loan documents
+     
+        // const loanDetails = await LoanDetails.find({}).populate('memberDetails')
+        // const memberDetails  = await MemberDetails.find({})
+
+        // console.log("Guarator:  ", loanDetails[0])
+
+        // const counter = 12;
+
+        // const guarantorsData = []
+
+        // loanDetails[counter].guarantors.map(async (guarantor, index) => {
+        //     // console.log(await LoanDetails.findOne({_id: loanDetails[0]._id }).populate('memberDetails'))
+        //     guarantorsData.push(memberDetails.find(member=> member.memberId === guarantor))
+            
+        // })
+
+        // guarantorsData.push(memberDetails.find(member=> member.memberId === 3))
+        // guarantorsData.push(memberDetails.find(member=> member.memberId === 20))
+
+        // console.log(guarantorsData)
+        // const loanUpdated = await LoanDetails.findOneAndUpdate({_id: '67fff05bb2d0079630571857'}, {$set:{
+        //     guarantors: guarantorsData
+        // }})
+
+        //  console.log("Updated Record", loanUpdated)
         return loanDetails;
     },
 
@@ -36,10 +62,13 @@ module.exports = {
     },
 
     updateSummary: async(req, res, next) => {
-        // console.log("Body Request", req.body);
+        console.log("Body Request", req.body);
         const summaryInfo = await SummarySchema.findOne({});
         const memberDetails  = await MemberDetails.findOne({memberId: req.body.memberId}).populate('loanDetails')
         const loanDetails = await LoanDetails.find({})
+        const guarantorsInfo = await MemberDetails.find({memberId: {"$in": [req.body.firstGuarantor, req.body.secondGuarantor]}})
+
+        console.log(guarantorsInfo)
 
         loanDetails.forEach(element => {
             const numberOfMonth = monthDiff(new Date(element.date), new Date());
@@ -69,7 +98,7 @@ module.exports = {
         const totalAmountValue = totalAmount + (req.body.totalAmount || 0) + (req.body.penaltyAmount || 0);
         const lentAmountValue = lentAmount + (req.body.loanAmount || 0);
         const balanceAmountValue = totalAmountValue - lentAmountValue;
-        const dateObj = new Date(req.body.loanDate) ?? new Date()
+        const dateObj = req?.body?.loanDate ? new Date(req.body.loanDate) : new Date()
 
         console.log(dateObj)
         console.log(dateObj.getDate())
@@ -102,13 +131,14 @@ module.exports = {
             emiAmount: emiAmountValue,
             finalAmountWithInterest: finalAmountWithInterestValue,
             totalInterest: totalInterestValue,
-            memberDetails: memberDetails._id
+            memberDetails: memberDetails._id,
+            guarantors: guarantorsInfo
         }
 
         console.log(updateLastLoanRequest);
 
         const updateLoanDetails = await LoanDetails.create(updateLastLoanRequest)
-        
+
         console.log("Lat Loan Id",updateLoanDetails)
         updateLastLoanRequest.loanDetails = updateLoanDetails._id
 
