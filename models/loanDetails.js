@@ -38,6 +38,9 @@ const LoanDetails = new Schema({
     guarantors: {
         type: Array
     },
+    loanStatus: {
+        type: String
+    },
     memberDetails: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'member'

@@ -26,6 +26,9 @@ const MemberSchema = new Schema({
     investedMoney:{
         type: Number
     },
+    memberStatus:{
+        type: String
+    },
     loanDetails: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'loans'

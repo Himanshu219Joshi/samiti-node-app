@@ -5,7 +5,7 @@ const SummarySchema = require("../models/summary").summary;
 const { getMonthName, getEmiAmount, getFinalAmountWithInterestValue, getInterest, monthDiff } = require('../utils');
 const PDFDocument = require('pdfkit')
 const fs = require('fs')
-const path = require('path')
+const path = require('path');
 
 
 module.exports = {
@@ -14,6 +14,34 @@ module.exports = {
         response.sort((a, b) => a.memberId - b.memberId)
         return response;
     }, 
+
+    addNewFieldInRecords: async(req, res, next) => {
+        // below code is for adding new attribute in record 
+        // const response = await MemberDetails.updateMany({},
+        //         {
+        //           $set: {
+        //             memberStatus: 'Active' 
+        //           }
+        //         }              
+        // )
+
+        // const response2 = await LoanDetails.updateMany({},
+        //     {
+        //       $set: {
+        //         loanStatus: 'Active' 
+        //       }
+        //     }                
+        // )
+
+    console.log("Response from Update" ,response2);
+    // console.log("Second Response", response2);
+    },
+
+    settelLoan: async (req, res, next) => {
+        const loanToBeSettle = await LoanDetails.find({_id: req.params.memberId})
+
+        res.send(loanToBeSettle)
+    },
 
     getLoanList: async (req, res, next) => {
         const loanDetails = await LoanDetails.find({}).populate('memberDetails')
@@ -54,6 +82,19 @@ module.exports = {
 
         //  console.log("Updated Record", loanUpdated)
         return loanDetails;
+    },
+
+    getLoan: async (req, res, next) => {
+        const loanInfo = await LoanDetails.findOne({_id: req.params.loanId }).populate('memberDetails')
+
+            const numberOfMonth = monthDiff(new Date(loanInfo.date), new Date());
+            
+            const interest = Math.round(loanInfo.totalInterest/20);
+            loanInfo.loanAmountRecovered = numberOfMonth * (loanInfo.emiAmount - interest);
+           
+            loanInfo.interestAccrued = interest * numberOfMonth;
+
+        return loanInfo;
     },
 
     getSamitiSummary: async (req, res, next) => {
@@ -99,11 +140,6 @@ module.exports = {
         const lentAmountValue = lentAmount + (req.body.loanAmount || 0);
         const balanceAmountValue = totalAmountValue - lentAmountValue;
         const dateObj = req?.body?.loanDate ? new Date(req.body.loanDate) : new Date()
-
-        console.log(dateObj)
-        console.log(dateObj.getDate())
-        console.log(getMonthName(dateObj.getMonth()))
-        console.log(dateObj.getFullYear())
 
         const dateFormated = `${dateObj.getDate()}-${getMonthName(dateObj.getMonth())}-${dateObj.getFullYear()}`
         const tenure = req.body.tenure || 20
@@ -334,7 +370,7 @@ function generateTable(doc, memberDetails) {
         headers.forEach((header, i) => {
             const x = leftMargin + columnWidths.slice(0, i).reduce((a, b) => a + b, 0);
 
-            if(header ===  'ब्याज' && ![42,43].includes(rowIndex)) {
+            if(header ===  'ब्याज' && ![43,44].includes(rowIndex)) {
                 doc 
                 .rect(x, y, columnWidths[i], rowHeight)            
                 .fill('#FFFF00')
@@ -344,7 +380,7 @@ function generateTable(doc, memberDetails) {
                 .fillColor('#000')
             }
 
-            if(header ===  'कुल योग' && [42,43].includes(rowIndex)) {
+            if(header ===  'कुल योग' && [43,44].includes(rowIndex)) {
                 doc 
                 .rect(x, y, columnWidths[i], rowHeight)            
                 .fill('#FF0000')
@@ -353,14 +389,14 @@ function generateTable(doc, memberDetails) {
             } 
 
             // last row back color and text color
-            if(rowIndex === 41 && i != 0 && i != 1 && i != 2) {
+            if(rowIndex === 42 && i != 0 && i != 1 && i != 2) {
                 doc 
                 .rect(x, y, columnWidths[i], rowHeight)            
                 .fill('#FFFF00')
                 .fillColor('#FF0000')
             }
             
-            if(header ===  'कुल योग' && [42,43].includes(rowIndex)) {
+            if(header ===  'कुल योग' && [43,44].includes(rowIndex)) {
                 doc
                 .fontSize(16)
                 .fillColor("#FFFFFF")
@@ -384,7 +420,7 @@ function generateTable(doc, memberDetails) {
             } 
 
 
-            if(![42,43].includes(rowIndex)){
+            if(![43,44].includes(rowIndex)){
             doc
                 .fontSize(10)
                 .text(
@@ -401,13 +437,13 @@ function generateTable(doc, memberDetails) {
                     .fillColor('#FF0000')                
                 }
                 
-                if(![42,43].includes(rowIndex))
+                if(![43,44].includes(rowIndex))
                     doc
                     .fontSize(16)
                     .text()
 
 
-                if(![42,43].includes(rowIndex))
+                if(![43,44].includes(rowIndex))
                 doc
                 .rect(x, y, columnWidths[i], rowHeight)
                 .stroke()

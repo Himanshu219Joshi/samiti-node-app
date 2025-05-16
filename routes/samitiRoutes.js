@@ -33,5 +33,21 @@ router.get('/generatePdf', (req, res, next) => {
     const options = { headers: { 'Content-Type': 'application/pdf' } };
 
 })
+
+router.get('/settleLoan/:memberId', async (req, res, next) => {
+    const response = samitiData.settelLoan(req, res, next);
+    next()
+})
+
+router.get('/getLoans/:loanId', async (req, res, next) => {
+    const response = await samitiData.getLoan(req, res, next);
+    res.json(response);
+})
+
+router.get('/addNewFieldInRecords', async (req, res, next) => {
+    const response = await samitiData.addNewFieldInRecords(req, res, next);
+    res.json(response);
+})
+
 // export the router module so that server.js file can use it
 module.exports = router;
