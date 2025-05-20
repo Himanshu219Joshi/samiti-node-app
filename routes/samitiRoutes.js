@@ -34,8 +34,9 @@ router.get('/generatePdf', (req, res, next) => {
 
 })
 
-router.get('/settleLoan/:memberId', async (req, res, next) => {
+router.post('/settleLoan/:memberId', async (req, res, next) => {
     const response = samitiData.settelLoan(req, res, next);
+    res.json({message: "Loan Settled"});
     next()
 })
 
