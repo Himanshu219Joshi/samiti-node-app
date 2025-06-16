@@ -54,6 +54,9 @@ const SamitiSummary = new Schema({
     },
     lastLoan: {
         type: LastLoanSummarySchema
+    },
+    createdOn: {
+        type: String
     }
 });
 

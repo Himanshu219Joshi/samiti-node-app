@@ -9,13 +9,59 @@ const path = require('path');
 
 
 module.exports = {
+    getGurnatorList: async (req, res, next) => {
+
+        const loanDetails = await LoanDetails.find({}).populate('memberDetails')
+
+        loanDetails.forEach(element => {
+            const numberOfMonth = monthDiff(new Date(element.date), new Date());
+
+            const interest = Math.round(element.totalInterest / 20);
+            element.loanAmountRecovered = numberOfMonth * (element.emiAmount - interest);
+
+            element.interestAccrued = interest * numberOfMonth;
+        })
+
+        const loanArray = [];
+        const set = new Set();
+        const gurantorMap = new Map();
+        loanDetails.map(ele => {
+            ele.guarantors.map(ele2 => {
+                loanArray.push(`${ele2.memberName} ${ele2.fatherName}`)
+
+
+                set.add(`${ele2.memberName} ${ele2.fatherName}`)
+
+            })
+        })
+
+        let counterArray = [];
+
+        for (const element of loanArray) {
+            gurantorMap.set(element, (gurantorMap.get(element) || 0) + 1);
+        }
+
+
+        const gurantorsNameArray = Array.from(set);
+
+        counterArray = gurantorsNameArray.map(ele => {
+            return {
+                name: ele,
+                gurantee: gurantorMap.get(ele)
+            }
+        })
+
+        console.log(counterArray)
+        return counterArray;
+    },
+
     getMembers: async (req, res, next) => {
         const response = await MemberDetails.find({}).populate('loanDetails')
         response.sort((a, b) => a.memberId - b.memberId)
         return response;
     },
 
-    addNewFieldInRecords: async(req, res, next) => {
+    addNewFieldInRecords: async (req, res, next) => {
         // below code is for adding new attribute in record 
         // const response = await MemberDetails.updateMany({},
         //         {
@@ -39,8 +85,8 @@ module.exports = {
 
     settelLoan: async (req, res, next) => {
         const loanToBeSettle = await LoanDetails.findOneAndUpdate({ _id: req.params.memberId }, {
-            $set : {
-                loanStatus: "CLOSED" 
+            $set: {
+                loanStatus: "CLOSED"
             }
         })
 
@@ -87,28 +133,7 @@ module.exports = {
         //  console.log("Updated Record", loanUpdated)
 
         // Below code is for getting list of user gurantors and there count has been given
-        
 
-        // const loanArray = [];
-        // const set = new Set();
-        // const map = new Map();
-        // loanDetails.map(ele => {
-        //     ele.guarantors.map(ele2 => {
-        //         loanArray.push(`${ele2.memberName} ${ele2.fatherName}`)
-
-
-        //         set.add(`${ele2.memberName} ${ele2.fatherName}`)
-
-        //     })
-        // })
-
-        // for (const element of loanArray) {
-        //     map.set(element, (map.get(element) || 0) + 1);
-        // }
-
-        // console.log(loanArray);
-        // console.log(set)
-        // console.log(map)
 
         return loanDetails;
     },
@@ -127,9 +152,9 @@ module.exports = {
     },
 
     getSamitiSummary: async (req, res, next) => {
-        const summary = await SummarySchema.findOne({}).populate({ path: 'lastLoan', populate: { path: 'loanDetails' } });
-        console.log("Samiti Summary", summary);
-        return summary;
+        const summary = await SummarySchema.find({}).populate({ path: 'lastLoan', populate: { path: 'loanDetails' } })
+        const index = summary.length > 0 ? summary.length - 1 : 0
+        return summary[index];
     },
 
     updateSummary: async (req, res, next) => {
@@ -209,9 +234,10 @@ module.exports = {
         console.log("Lat Loan Id", updateLoanDetails)
         updateLastLoanRequest.loanDetails = updateLoanDetails._id
 
-        const updatedSummary = await SummarySchema.updateOne({
+        const updatedSummary = await SummarySchema.create({
             summary: updateSummaryRequest,
-            lastLoan: updateLastLoanRequest
+            lastLoan: updateLastLoanRequest,
+            createOn: new Date()
         })
 
         const updateMemberDetails = await MemberDetails.findOneAndUpdate({ memberId: memberDetails.memberId}, {

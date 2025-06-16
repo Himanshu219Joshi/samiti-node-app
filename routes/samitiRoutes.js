@@ -50,5 +50,10 @@ router.get('/addNewFieldInRecords', async (req, res, next) => {
     res.json(response);
 })
 
+router.get("/gurantors", async(req, res, next) => {
+    const response = await samitiData.getGurnatorList(req, res, next);
+    res.json(response);
+})
+
 // export the router module so that server.js file can use it
 module.exports = router;
